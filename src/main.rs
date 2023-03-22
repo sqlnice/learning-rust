@@ -3,7 +3,8 @@ use std::{cmp::Ordering, io};
 fn main() {
     // guess_number()
     // variables_and_mutability()
-    data_types()
+    // data_types()
+    another_function(5)
 }
 
 // 2 猜数字游戏
@@ -108,4 +109,30 @@ fn data_types() {
     ];
     let a = [3; 5]; // 生成 [3, 3, 3, 3, 3]
     let first = a[0]; // 使用索引访问
+}
+// 3.3 函数
+fn another_function(x: i32) {
+    // 参数必须指定类型;意味着编译器再也不需要你在代码的其他地方注明类型来指出你的意图。而且，在知道函数需要什么类型后，编译器就能够给出更有用的错误消息
+    println!("{x}");
+
+    // 语句和表达式
+    // Rust 是一门基于表达式（expression-based）的语言，这是一个需要理解的（不同于其他语言）重要区别。
+    // 语句 - 执行一些操作但不返回值的指令
+    let y = 6;
+    // 表达式 - 计算并产生一个值。
+    // 1.上面例子中 6 是表达式，意为返回一个 6
+    // 2.函数调用
+    // 3.宏调用
+    // 4.用大括号创建的新的块作用域也是表达式：
+    let y = {
+        let x = 3;
+        x + 1 // 表达式的结尾没有分号
+    };
+    println!("The value of y is: {y}");
+
+    // 具有返回值的函数;需要在 -> 后声明它的类型
+    fn five() -> i32 {
+        5
+    }
+    five();
 }
