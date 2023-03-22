@@ -1,10 +1,12 @@
+use core::num;
 use rand::Rng;
 use std::{cmp::Ordering, io};
 fn main() {
     // guess_number()
     // variables_and_mutability()
     // data_types()
-    another_function(5)
+    // another_function(5)
+    control_flow()
 }
 
 // 2 猜数字游戏
@@ -135,4 +137,79 @@ fn another_function(x: i32) {
         5
     }
     five();
+}
+// 3.4 控制流
+fn control_flow() {
+    // if
+    let number = 6;
+    if number % 4 == 0 {
+        println!("number is divisible by 4");
+    } else if number % 3 == 0 {
+        println!("number is divisible by 3");
+    } else if number % 2 == 0 {
+        println!("number is divisible by 2");
+    } else {
+        println!("number is not divisible by 4, 3, or 2");
+    }
+    // if 是表达式，所以：
+    let condition = true;
+    let number = if condition { 5 } else { 6 }; // 分支返回的类型必须相同
+
+    // loop
+    let mut counter = 0;
+    let result = loop {
+        counter += 1;
+        if counter == 10 {
+            break counter * 2;
+        }
+    };
+    println!("The result is {result}");
+
+    // while
+    let mut number = 3;
+    while number != 0 {
+        println!("{number}");
+        number -= 1;
+    }
+    println!("LIFTOFF!!!");
+
+    // for
+    let a = [10, 20, 30, 40, 50];
+    let mut index = 0;
+    while index < 5 {
+        println!("the value is: {}", a[index]);
+        index += 1;
+    }
+    for element in a {
+        println!("the value is: {element}");
+    }
+    for number in (1..4).rev() {
+        println!("{number}!");
+    }
+
+    // 生成 n 阶斐波那契数列
+    // 递归; 会生成大量的重复代码比较慢
+    fn fib_1(n: i32) -> i32 {
+        match n {
+            0 => 0,
+            1 => 1,
+            _ => fib_1(n - 1) + fib_1(n - 2),
+        }
+    }
+    println!("fib_1 Result:{}", fib_1(9));
+    // 循环; 每次保存计算的结果，空间换时间
+    fn fib_2(n: i32) -> i32 {
+        if n == 0 {
+            return 0;
+        }
+        let mut num1 = 0;
+        let mut num2 = 1;
+        for _ in 1..n {
+            let temp = num1 + num2;
+            num1 = num2;
+            num2 = temp;
+        }
+        num2
+    }
+    println!("fib_2 Result:{}", fib_2(9));
 }
