@@ -1,6 +1,9 @@
 use core::num;
 use rand::Rng;
-use std::{cmp::Ordering, io};
+use std::{
+    cmp::Ordering,
+    io::{self, Read},
+};
 fn main() {
     // guess_number()
     // variables_and_mutability()
@@ -10,7 +13,9 @@ fn main() {
     // ownership()
     // references_and_borrowing()
     // slices()
-    defining_structs()
+    // defining_structs()
+    // example_structs()
+    method_syntax()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -345,3 +350,63 @@ fn defining_structs() {
     struct AlwaysEqual;
     let subject = AlwaysEqual;
 }
+// 5.2 结构体示例程序
+fn example_structs() {
+    #[derive(Debug)]
+    struct Rectangle {
+        width: u32,
+        height: u32,
+    }
+    let rect = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    println!("rect is {:#?}", rect);
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(&rect)
+    );
+    fn area(rectangle: &Rectangle) -> u32 {
+        rectangle.width * rectangle.height
+    }
+}
+// 5.3 结构体的方法语法
+fn method_syntax() {
+    #[derive(Debug)]
+    struct Rectangle {
+        width: u32,
+        height: u32,
+    }
+    impl Rectangle {
+        fn area(self: &Self) -> u32 {
+            self.width * self.height
+        }
+    }
+    impl Rectangle {
+        fn can_hold(&self, other: &Rectangle) -> bool {
+            self.width > other.width && self.height > other.height
+        }
+        fn square(size: u32) -> Self {
+            Self {
+                width: size,
+                height: size,
+            }
+        }
+    }
+    let rect = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle {
+        width: 10,
+        height: 40,
+    };
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        rect.area()
+    );
+    println!("Can rect1 hold rect2? {}", rect.can_hold(&rect2));
+    let square = Rectangle::square(10);
+    println!("square: {:?}", square);
+}
+// 结构体让你可以创建出在你的领域中有意义的自定义类型。通过结构体，我们可以将相关联的数据片段联系起来并命名它们，这样可以使得代码更加清晰。在 impl 块中，你可以定义与你的类型相关联的函数，而方法是一种相关联的函数，让你指定结构体的实例所具有的行为。
