@@ -9,7 +9,8 @@ fn main() {
     // control_flow()
     // ownership()
     // references_and_borrowing()
-    slices()
+    // slices()
+    defining_structs()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -306,3 +307,41 @@ fn slices() {
     }
 }
 // 所有权、借用和 slice 这些概念让 Rust 程序在编译时确保内存安全。Rust 语言提供了跟其他系统编程语言相同的方式来控制你使用的内存，但拥有数据所有者在离开作用域后自动清除其数据的功能意味着你无须额外编写和调试相关的控制代码。
+// 5.1 定义结构体
+fn defining_structs() {
+    struct User {
+        active: bool,
+        username: String,
+    }
+    let mut user1 = User {
+        active: true,
+        username: String::from("sql"),
+    };
+    let username = user1.username;
+    println!("{username}");
+    user1.username = String::from("sql2");
+    println!("{}", user1.username);
+
+    fn build_user(username: String) -> User {
+        User {
+            active: true,
+            username,
+        }
+    }
+    let user2 = build_user(String::from("sql3"));
+    println!("{}", user2.username);
+    // 解构 结构更新语法就像带有 = 的赋值，因为它移动了数据
+    let user3: User = User {
+        username: String::from("sql4"),
+        ..user1
+    };
+    println!("{}", user1.active);
+
+    // 元祖结构体
+    struct Color(i32, i32, i32);
+    let black = Color(0, 0, 0);
+
+    // 类单元结构体;类单元结构体常常在你想要在某个类型上实现 trait 但不需要在类型中存储数据的时候发挥作用
+    struct AlwaysEqual;
+    let subject = AlwaysEqual;
+}
