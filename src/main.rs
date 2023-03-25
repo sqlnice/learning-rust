@@ -6,9 +6,11 @@ fn main() {
     // variables_and_mutability()
     // data_types()
     // another_function(5)
-    control_flow()
+    // control_flow()
+    // ownership()
+    // references_and_borrowing()
+    slices()
 }
-
 // 2 猜数字游戏
 fn guess_number() {
     println!("猜数字游戏!");
@@ -39,7 +41,6 @@ fn guess_number() {
         }
     }
 }
-
 // 3 常见编程概念
 // 3.1 变量与可变性
 fn variables_and_mutability() {
@@ -213,3 +214,95 @@ fn control_flow() {
     }
     println!("fib_2 Result:{}", fib_2(9));
 }
+// 4 所有权
+// 所有权是Rust独有的特性，他让rust无需垃圾回收即可保障内存安全。通过所有权系统管理内存，编译器在编译时会根据一系列的规则进行检查。如果违反了这些规则，程序不能编译。在运行时，所有权系统的任何功能都不会减慢程序。
+// 所有权规则
+// - Rust 中每一个值都有一个所有者
+// - 值在任意时刻有且只有一个所有者
+// - 当所有者离开作用域后，这个值将被丢弃
+fn ownership() {
+    {
+        // s 在此处无效，尚未声明
+        let s = "hello"; // s 有效
+        println!("{s}");
+    } // s 无效，作用域结束
+
+    // 变量与数据交互的方式 - 移动
+    let s1 = String::from("hello");
+    let s2 = s1;
+    // println!("{s1}"); 此处访问 s1 无效
+    // 为了确保内存安全，在 let s2 = s1 之后 rust认为 s1 不再有效
+    // 可以理解为当 s2 = s1 之后，s1 的指针、长度、容量都被移动到 s2 中了，不是“浅拷贝”。这个操作成为移动
+
+    // 变量与数据交互的方式 - 克隆
+    // 可以理解为深拷贝，可能更加消耗资源
+    let s1 = String::from("hello");
+    let s2 = s1.clone();
+    println!("s1 = {}, s2 = {}", s1, s2);
+
+    // 所有权与函数; 将值传递给函数可能会移动或复制
+    let s = String::from("hello"); // s 进入作用域
+    takes_ownership(s); // s 的值移动到函数里 ...
+                        // ... 所以s到这里不再有效
+    let x = 5; // x 进入作用域
+    makes_copy(x); // x 应该移动到函数里，但 i32 是 Copy 的，所以在后面可继续使用 x
+    fn takes_ownership(some_string: String) {
+        // some_string 进入作用域
+        println!("{}", some_string);
+    } // 这里，some_string 移出作用域并调用 `drop` 方法。
+      // 占用的内存被释放
+    fn makes_copy(some_integer: i32) {
+        // some_integer 进入作用域
+        println!("{}", some_integer);
+    }
+}
+// 4.2 引用与借用; & 符号就是引用，允许你使用值但不获取所有权
+// 总结引用的规则：
+// - 在任意时间，要么只能有一个可变引用，要么只能有多个不可变引用
+// - 引用必须总是有效的
+fn references_and_borrowing() {
+    println!("引用与借用");
+    let s1 = String::from("hello");
+    let len = calculate_length(&s1);
+    println!("the length of {} is {}", s1, len);
+    fn calculate_length(s: &String) -> usize {
+        s.len()
+    } // 在这里 s 离开作用域，但他是引用，并不拥有所有权，所以不会销毁
+      // 我们将创建一个引用的行为称为借用
+
+    // 可变引用; 不能存在对一个变量有多个可变的引用，会引起数据竞争，因为你不知道是谁改变的
+    let mut s = String::from("hello");
+    change(&mut s);
+    fn change(some_string: &mut String) {
+        some_string.push_str(", world");
+    }
+
+    // 悬垂引用；是其指向的内存可能已经被分配给其它持有者
+    let reference_to_nothing = no_dangle();
+    // fn dangle() -> &String {
+    //     // dangle 返回一个字符串的引用
+    //     let s = String::from("hello"); // s 是一个新字符串
+    //     &s // 返回字符串 s 的引用
+    // } // 这里 s 离开作用域并被丢弃。其内存被释放。
+    // 解决方法是直接返回 String：
+    fn no_dangle() -> String {
+        let s = String::from("hello");
+        s
+    }
+}
+// 4.3 切片 slice 允许你引用集合中一段连续的元素序列，而不用引用整个集合。slice 是一类引用，所以它没有所有权。
+fn slices() {
+    let mut s = String::from("hello world");
+    let word = first_word(&s);
+    println!("{word}");
+    fn first_word(s: &str) -> &str {
+        let bytes = s.as_bytes();
+        for (i, &item) in bytes.iter().enumerate() {
+            if item == b' ' {
+                return &s[0..i];
+            }
+        }
+        &s[..]
+    }
+}
+// 所有权、借用和 slice 这些概念让 Rust 程序在编译时确保内存安全。Rust 语言提供了跟其他系统编程语言相同的方式来控制你使用的内存，但拥有数据所有者在离开作用域后自动清除其数据的功能意味着你无须额外编写和调试相关的控制代码。
