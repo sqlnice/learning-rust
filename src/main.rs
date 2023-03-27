@@ -15,7 +15,9 @@ fn main() {
     // slices()
     // defining_structs()
     // example_structs()
-    method_syntax()
+    // method_syntax()
+    // defining_an_enum()
+    match_flow()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -410,3 +412,129 @@ fn method_syntax() {
     println!("square: {:?}", square);
 }
 // 结构体让你可以创建出在你的领域中有意义的自定义类型。通过结构体，我们可以将相关联的数据片段联系起来并命名它们，这样可以使得代码更加清晰。在 impl 块中，你可以定义与你的类型相关联的函数，而方法是一种相关联的函数，让你指定结构体的实例所具有的行为。
+
+// 6.1 枚举的定义
+fn defining_an_enum() {
+    enum IpAddrkind {
+        V4(String),
+        V6(String),
+    }
+    let four = IpAddrkind::V4(String::from("127.0.0.1"));
+    let six = IpAddrkind::V6(String::from("::1"));
+    enum IpAddr {
+        V4(u8, u8, u8, u8),
+        V6(String),
+    }
+    let home = IpAddr::V4(127, 0, 0, 1);
+    let loopback = IpAddr::V6(String::from("::1"));
+
+    // 枚举与结构体对比
+    #[derive(Debug)]
+    enum Message {
+        Quit,
+        Move { x: i32, y: i32 },
+        Write(String),
+        ChangeColor(i32, i32, i32),
+    }
+    struct QuitMessage; // 类单元结构体
+    struct MoveMessage {
+        x: i32,
+        y: i32,
+    }
+    struct WriteMessage(String); // 元祖结构体
+    struct ChangeColorMessage(i32, i32, i32); // 元祖结构体
+                                              // 如果使用不同的结构体，由于他们的类型不同，我们将不能轻易定义一个能够处理这些不同类型的结构体的函数，因为枚举是单独一个类型
+                                              // 相似点：可以使用impl来为枚举定义方法
+    impl Message {
+        fn call(&self) {
+            println!("{:?}", self)
+        }
+    }
+    let m = Message::Write(String::from("hello"));
+    m.call();
+
+    // Option 是标准库中定义的另一个枚举，应用于 一个值要么有值要么没值
+    let some_number = Some(5);
+    let some_char = Some('e');
+    let absent_number: Option<i32> = None;
+    let x: Option<u32> = Some(2);
+    assert_eq!(x.is_some(), true);
+}
+// 6.2 match 控制流结构
+fn match_flow() {
+    enum Coin {
+        Penny,
+        Nickel,
+        Dime,
+        Quarter(UsState),
+    }
+    fn value_in_cents(coin: Coin) -> u8 {
+        match coin {
+            Coin::Penny => 1,
+            Coin::Nickel => 5,
+            Coin::Dime => 10,
+            Coin::Quarter(state) => {
+                println!("State quarter from {:?}", state);
+                25
+            }
+        }
+    }
+    let dime: Coin = Coin::Dime;
+    let result = value_in_cents(dime);
+    println!("{result}");
+
+    // 绑定值的模式
+    #[derive(Debug)]
+    enum UsState {
+        Alabama,
+        Alaska,
+    }
+    let Alaska = Coin::Quarter(UsState::Alaska);
+    let result = value_in_cents(Alaska);
+    println!("{result}");
+
+    // 匹配 Option<T>
+    fn plus_one(x: Option<i32>) -> Option<i32> {
+        match x {
+            None => None,
+            Some(i) => Some(i + 1),
+        }
+    }
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+
+    // 匹配是穷尽的;分支必须覆盖所有的可能性
+
+    // 通配模式和_占位符
+    let dice_roll = 9;
+    match dice_roll {
+        3 => add_fancy_hat(),
+        7 => remove_fancy_hat(),
+        _ => reroll(), // 必须将通配分支放在最后;当我们不想使用通配模式获取的值时，请使用 _ ，这是一个特殊的模式，可以匹配任意值而不绑定到该值
+                       // _ => (), // 返回空元祖;在这里，我们明确告诉 Rust 我们不会使用与前面模式不匹配的值，并且这种情况下我们不想运行任何代码
+    }
+
+    fn add_fancy_hat() {}
+    fn remove_fancy_hat() {}
+    fn reroll() {}
+}
+// 6.3 if let 简洁控制流
+fn if_let() {
+    let config_max = Some(3u8);
+    match config_max {
+        Some(max) => println!("The maximum is configured to be {}", max),
+        _ => (),
+    }
+    // 可以使用 if let 这种更短的方式编写
+    if let Some(max) = config_max {
+        println!("The maximum is configured to be {}", max);
+    }
+    // if let else
+    // let mut count = 0;
+    // if let Coin::Quarter(state) = coin {
+    //     println!("State quarter from {:?}!", state);
+    // } else {
+    //     count += 1;
+    // }
+}
