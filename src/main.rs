@@ -4,6 +4,9 @@ use std::{
     cmp::Ordering,
     io::{self, Read},
 };
+use crate::garden::vegetables::Asparagus; // use 用来将路径引入作用域
+pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
+
 fn main() {
     // guess_number()
     // variables_and_mutability()
@@ -17,7 +20,9 @@ fn main() {
     // example_structs()
     // method_syntax()
     // defining_an_enum()
-    match_flow()
+    // match_flow()
+    // if_let()
+    defining_modules_to_control_scope_and_privacy()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -537,4 +542,20 @@ fn if_let() {
     // } else {
     //     count += 1;
     // }
+}
+
+// 7.1 包和 Crate
+// crate 是 Rust 在编译时最小的代码单位
+// - 二进制项 可以被编译为可执行程序,必须有 main 函数来定义程序要做的事情
+// - 库      没有 main 函数,不会被编译为可执行程序.大部分是指提供函数之类的库,可以理解为 npm 包?
+
+// 包 是提供一系列功能的一个或多个 crate
+// 最多存在一个库;只少有一个 crate(无论是库还是二进制项)
+
+// 在此，我们有了一个只包含 src/main.rs 的包，意味着它只含有一个名为 my-project 的二进制 crate。如果一个包同时含有 src/main.rs 和 src/lib.rs，则它有两个 crate：一个二进制的和一个库的，且名字都与包相同。通过将文件放在 src/bin 目录下，一个包可以拥有多个二进制 crate：每个 src/bin 下的文件都会被编译成一个独立的二进制 crate。
+
+// 7.2 定义模块来控制作用域与私有性
+fn defining_modules_to_control_scope_and_privacy() {
+    let plant = Asparagus {};
+    println!("im growing {:?}!", plant);
 }
