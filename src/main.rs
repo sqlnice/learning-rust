@@ -23,7 +23,8 @@ fn main() {
     // match_flow()
     // if_let()
     // defining_modules_to_control_scope_and_privacy()
-    paths_for_referring_to_an_item_in_the_module_tree()
+    // paths_for_referring_to_an_item_in_the_module_tree()
+    vectors()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -569,3 +570,39 @@ fn paths_for_referring_to_an_item_in_the_module_tree() {
 // 7.5 将模块拆分成多个文件
 // Rust 提供了将包分成多个crate，将crate分成模块，以及通过指定绝对/相对路径从一个模块引用另一个模块中定义的项的方式。
 // 也可以使用use语句将路径引入作用域。
+
+// 集合
+// 8.1 使用 Vector 储存列表
+// 在内存中彼此相邻排列所有的值，只能存储相同类型的值
+fn vectors() {
+    let v: Vec<i32> = Vec::new();
+    let mut v = vec![1, 2, 3]; // 编译器类型推断
+
+    // 更新
+    v.push(4);
+    v.push(5);
+    // 读取
+    let third = &v[2];
+    let third = v.get(2);
+    match third {
+        Some(third) => println!("The third element is {third}"),
+        None => println!("There is no third element."),
+    }
+    // 遍历
+    let mut v = vec![100, 32, 57];
+    for i in &mut v {
+        *i += 50; // * 为解引用运算符
+        println!("{i}");
+    }
+    // 使用枚举来储存多种类型
+    enum SpreadsheetCell {
+        Int(i32),
+        Float(f64),
+        Text(String),
+    }
+    let row = vec![
+        SpreadsheetCell::Int(3),
+        SpreadsheetCell::Float(10.12),
+        SpreadsheetCell::Text(String::from("blue")),
+    ];
+}
