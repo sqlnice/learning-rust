@@ -1,16 +1,5 @@
-mod front_of_house {
-    // 模块名称为 front_of_house
-    pub mod hosting {
-        // 模块可以定义层级结构
-        pub fn add_to_waitlist() {}
-        fn seat_at_table() {}
-    }
-    mod serving {
-        fn take_order() {}
-        fn serve_order() {}
-        fn take_payment() {}
-    }
-}
+// 模块名称为 front_of_house
+mod front_of_house;
 // 模块树的结构
 // crate
 //  └── front_of_house
@@ -48,7 +37,7 @@ mod back_of_house {
         }
     }
 }
-
+use crate::front_of_house::hosting; // use 语句只适用于其所在的作用域
 fn eat_at_restaurant() {
     // 在夏天订购一个黑麦土司作为早餐
     let mut meal = back_of_house::Breakfast::summer("Rye");
@@ -59,4 +48,5 @@ fn eat_at_restaurant() {
     // meal.seasonal_fruit = String::from("blueberries");
 
     let order1 = back_of_house::Appetizer::Soup;
+    hosting::add_to_waitlist();
 }
