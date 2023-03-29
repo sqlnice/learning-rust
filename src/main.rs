@@ -1,10 +1,10 @@
+use crate::garden::vegetables::Asparagus;
 use core::num;
 use rand::Rng;
 use std::{
     cmp::Ordering,
     io::{self, Read},
-};
-use crate::garden::vegetables::Asparagus; // use 用来将路径引入作用域
+}; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
 
 fn main() {
@@ -22,7 +22,8 @@ fn main() {
     // defining_an_enum()
     // match_flow()
     // if_let()
-    defining_modules_to_control_scope_and_privacy()
+    // defining_modules_to_control_scope_and_privacy()
+    paths_for_referring_to_an_item_in_the_module_tree()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -558,4 +559,9 @@ fn if_let() {
 fn defining_modules_to_control_scope_and_privacy() {
     let plant = Asparagus {};
     println!("im growing {:?}!", plant);
+}
+// 7.3 引用模块项目的路径
+fn paths_for_referring_to_an_item_in_the_module_tree() {
+    // - 绝对路径；以crate根为开头的全路径
+    // - 相对路径；从当前模块开始，以self、super或当前模块的标识符开头
 }
