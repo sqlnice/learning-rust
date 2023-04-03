@@ -4,8 +4,9 @@ use rand::Rng;
 use std::{
     cmp::Ordering,
     collections::HashMap,
+    fs::{File, self},
     hash::Hash,
-    io::{self, Read},
+    io::{self, ErrorKind, Read},
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
 
@@ -28,7 +29,9 @@ fn main() {
     // paths_for_referring_to_an_item_in_the_module_tree()
     // vectors()
     // strings()
-    hash_maps()
+    // hash_maps()
+    // unrecoverable_errors_with_panic()
+    recoverable_errors_with_result()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -691,4 +694,81 @@ fn hash_maps() {
         *count += 1; // * 解引用
     }
     println!("{:?}", map);
+}
+
+// 9 错误处理;Rust 将错误分类为: 可恢复的 和 不可恢复的
+// 9.1 用 panic! 处理不可恢复的错误
+fn unrecoverable_errors_with_panic() {
+    // panic!("crash and burn")
+    // let v = vec![1, 2, 3];
+    // v[99];
+}
+// 9.2 用 Result 处理可恢复的错误
+fn recoverable_errors_with_result() {
+    let greeting_file_result = File::open("hello.txt");
+    // 什么b嵌套
+    // let greeting_file = match greeting_file_result {
+    //     Ok(file) => file,
+    //     Err(error) => match error.kind() {
+    //         ErrorKind::NotFound => match File::create("hello.tet") {
+    //             Ok(fc) => fc,
+    //             Err(e) => panic!("Problem creating the file: {:?}", e),
+    //         },
+    //         other_error => {
+    //             panic!("Problem opening the file: {:?}", other_error);
+    //         }
+    //     },
+    // };
+    // 使用闭包和 unwrap_or_else 改善
+    let greeting_file = File::open("hello.txt").unwrap_or_else(|error| {
+        if error.kind() == ErrorKind::NotFound {
+            File::create("hello.txt").unwrap_or_else(|error| {
+                panic!("Problem creating the file: {:?}", error);
+            })
+        } else {
+            panic!("Problem opening the file: {:?}", error);
+        }
+    });
+
+    // 失败时 panic 的简写：unwrap 和 expect
+    // 失败时 unwrap 会帮我们调用 panic
+    let greeting_file = File::open("hello.txt").unwrap();
+    // 生产级别的代码中，大部分 Rustaceans 选择 expect
+    let greeting_file =
+        File::open("hello.txt").expect("hello.txt should be included in this project");
+
+    // 传播错误
+    // fn read_username_from_file() -> Result<String, io::Error> {
+    //     let username_file_result = File::open("hello.txt");
+    //     let mut username_file = match username_file_result {
+    //         Ok(file) => file,
+    //         Err(e) => return Err(e), // 不在函数的最后,所以需要 return
+    //     };
+    //     let mut username = String::new();
+    //     match username_file.read_to_string(&mut username) {
+    //         Ok(_) => Ok(username),
+    //         Err(e) => Err(e),
+    //     }
+    // }
+    // 传播错误的简写 ? 运算符
+    // fn read_username_from_file() -> Result<String, io::Error> {
+    //     let mut username_file = File::open("hello.txt")?;
+    //     let mut username = String::new();
+    //     username_file.read_to_string(&mut username)?;
+    //     Ok(username)
+    // }
+    // ? 运算符消除了大量样板代码并使得函数的实现更简单。我们甚至可以在 ? 之后直接使用链式方法调用来进一步缩短代码
+    // fn read_username_from_file() -> Result<String, io::Error> {
+    //     let mut username = String::new();
+    //     File::open("hello.txt")?.read_to_string(&mut username)?;
+    //     Ok(username)
+    // }
+    // 更简短
+    fn read_username_from_file() -> Result<String, io::Error> {
+        fs::read_to_string("hello.txt")
+    }
+    // ? 适用于 Option
+    fn last_char_of_first_line(text:&str) -> Option<char> {
+        text.lines().next()?.chars().last()
+    }
 }
