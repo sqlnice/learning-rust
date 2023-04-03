@@ -3,6 +3,8 @@ use core::num;
 use rand::Rng;
 use std::{
     cmp::Ordering,
+    collections::HashMap,
+    hash::Hash,
     io::{self, Read},
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
@@ -24,7 +26,9 @@ fn main() {
     // if_let()
     // defining_modules_to_control_scope_and_privacy()
     // paths_for_referring_to_an_item_in_the_module_tree()
-    vectors()
+    // vectors()
+    // strings()
+    hash_maps()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -605,4 +609,86 @@ fn vectors() {
         SpreadsheetCell::Float(10.12),
         SpreadsheetCell::Text(String::from("blue")),
     ];
+}
+// 8.2 使用字符串储存 UTF-8 编码的文本
+// 字符串是作为字节的集合外加一些方法实现的
+fn strings() {
+    // Rust 倾向于确保暴露出可能会出现的错误,字符串是很复杂的数据结构
+    let data = "initial contents";
+    let s = data.to_string();
+    let s = "initial contents".to_string();
+    let mut s = String::from("initial contents");
+    s.push_str("bar");
+    s.push('l'); // 添加单个字母
+                 // 字符串相加 - 1
+    let s1 = String::from("Hello, ");
+    let s2 = "world!".to_string();
+    // let s3 = s1 + &s2;
+    // + 相当于调用一下函数
+    // fn add(self, s: &str) -> String
+    // println!("{s1}{s2}{s3}"); // s1 失效
+    // 字符串相加 - 2
+    let s = format!("{s1}-{s2}");
+
+    // 索引字符串;不能直接访问的原因是每个 Unicode 标量值需要两个字节存储,并且有的字虽然保存但是没有意义,最后索引操作预期总是O(1),但是对于 String 不可能保证这样
+    let s1 = String::from("hello");
+    // let h = s1[0];
+
+    // 字符串 slice
+    let hello = "Здравствуйте";
+    let s = &hello[0..4]; // Зд 每个字母长度为 2 字节
+                          // print!("{s}");
+
+    // 遍历字符串
+    for c in "Зд".chars() {
+        println!("{c}");
+        // 3
+        // д
+    }
+    for b in "3д".bytes() {
+        println!("{b}");
+        // 51
+        // 208
+        // 180
+    }
+}
+
+// 8.3 使用 Hash Map 储存键值对
+fn hash_maps() {
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50); // key value 必须同类型
+
+    let team_name = String::from("Blue");
+    let score = scores.get(&team_name).copied().unwrap_or(0);
+    // 调用 copied 获取 Option<i32>,调用 unwrap_or 在 score 中没有该键所对应项时设为 0
+    println!("{}", score);
+    // 访问
+    for (key, value) in &scores {
+        println!("{key}: {value}");
+    }
+    // 所有权
+    let field_name = String::from("Favorite color");
+    let field_value = String::from("Blue");
+    let mut map = HashMap::new();
+    map.insert(field_name, field_value);
+    // 如果将值的引用插入哈希 map，这些值本身将不会被移动进哈希 map。但是这些引用指向的值必须至少在哈希 map 有效时也是有效的。
+    println!("field_value");
+
+    // 更新
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Blue"), 25);
+
+    // 只在键没有对应值时插入键值对;or_insert 方法在键对应的值存在时就返回这个值的可变引用，如果不存在则将参数作为新值插入并返回新值的可变引用
+    scores.entry(String::from("Blue")).or_insert(50);
+    println!("{:?}", scores);
+
+    // 根据旧值更新一个值
+    let text = "hello world wonderful world";
+    let mut map = HashMap::new();
+    for word in text.split_whitespace() {
+        let count = map.entry(word).or_insert(0);
+        *count += 1; // * 解引用
+    }
+    println!("{:?}", map);
 }
