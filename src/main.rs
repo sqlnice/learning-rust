@@ -4,6 +4,7 @@ use rand::Rng;
 use std::{
     cmp::Ordering,
     collections::HashMap,
+    fmt::{Debug, Display},
     fs::{self, File},
     hash::Hash,
     io::{self, ErrorKind, Read},
@@ -31,7 +32,8 @@ fn main() {
     // strings()
     // hash_maps()
     // unrecoverable_errors_with_panic()
-    recoverable_errors_with_result()
+    // recoverable_errors_with_result()
+    traits()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -833,4 +835,99 @@ fn syntax() {
     }
 
     // 泛型代码的性能;Rust 通过在编译时进行泛型代码的 单态化（monomorphization）来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程。
+}
+// 10.2 Trait: 定义共同行为
+fn traits() {
+    // trait 定义了某个特定类型拥有可能与其他类型共享的功能.
+    // 定义 trait
+    pub trait Summary {
+        fn summarize(&self) -> String; // 一行一个方法签名且都以分号结尾
+    }
+
+    // 为类型定义 trait
+    pub struct NewsArticle {
+        pub headline: String,
+        pub location: String,
+        pub author: String,
+        pub content: String,
+    }
+    impl Summary for NewsArticle {
+        fn summarize(&self) -> String {
+            format!("{}, by {}, ({})", self.headline, self.author, self.location)
+        }
+    }
+    pub struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+    impl Summary for Tweet {
+        fn summarize(&self) -> String {
+            format!("{}:{}", self.username, self.content)
+        }
+    }
+    let tweet = Tweet {
+        username: String::from("horse_ebooks"),
+        content: String::from("of course, as you probably already know, people"),
+        reply: false,
+        retweet: false,
+    };
+    println!("1 new tweet:{}", tweet.summarize());
+
+    // 默认实现
+    // pub trait Summary {
+    //     fn summarize(&self) -> String {
+    //         String::from("(Read more...)")
+    //     }
+    // };
+
+    // trait 作为参数
+    // pub fn notify(item: &impl Summary) {
+    //     println!("Breaking news! {}", item.summarize());
+    // };
+
+    // Trait Bound 语法 简化书写,实际是语法糖
+    // pub fn notify(item1: &impl Summary, item2: &impl Summary) {}
+    // pub fn notify<T: Summary>(item1: &T, item2: &T) {}
+    // 通过 + 指定多个 trait bound
+    // pub fn notify(item: &(impl Summary + Display)) {}
+    pub fn notify<T: Summary + Display>(item: &T) {}
+    // 通过 where 简化 trait bound
+    // fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) {};
+    fn some_function<T, U>(t: &T, u: &U)
+    where
+        T: Display + Clone,
+        U: Clone + Debug,
+    {
+    }
+    // 返回实现了 trait 的类型
+    fn returns_summarizable() -> impl Summary {
+        Tweet {
+            username: "horse_ebooks".to_string(),
+            content: "of course, as you probably already know, people".to_string(),
+            reply: false,
+            retweet: false,
+        }
+    }
+    // 使用 trait bound 有条件的实现方法
+    struct Pair<T> {
+        x: T,
+        y: T,
+    }
+    impl<T> Pair<T> {
+        fn new(x: T, y: T) -> Self {
+            Self { x, y }
+        }
+    }
+    impl<T: Display + PartialOrd> Pair<T> {
+        fn cmp_display(&self) {
+            if self.x >= self.y {
+                println!("The largest member is x = {}", self.x);
+            } else {
+                println!("The largest member is y = {}", self.y);
+            }
+        }
+    }
+    // trait 和 trait bound 让我们使用泛型类型参数来减少重复,并仍然能够向编译器明确指定泛型类型需要拥有哪些行为.因为我们向编译器提供了 trait bound 信息，它就可以检查代码中所用到的具体类型是否提供了正确的行为。在动态类型语言中，如果我们尝试调用一个类型并没有实现的方法，会在运行时出现错误。Rust 将这些错误移动到了编译时，甚至在代码能够运行之前就强迫我们修复错误。另外，我们也无需编写运行时检查行为的代码，因为在编译时就已经检查过了，这样相比其他那些不愿放弃泛型灵活性的语言有更好的性能。
 }
