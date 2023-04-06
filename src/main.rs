@@ -778,3 +778,59 @@ fn to_panic_or_not_to_panic() {
 
     // 实例/代码原型和测试适合 panic
 }
+
+// 10 泛型、Trait和生命周期
+// 10.1 泛型数据类型
+fn syntax() {
+    // 函数定义中使用泛型
+    fn largest<T>(list: &[T]) -> &T {
+        let mut largest = &list[0];
+        for item in list {
+            // if item > largest {
+            //     largest = item;
+            // }
+        }
+        largest
+    }
+    let number_list = vec![1, 2, 3, 4, 5, 9, 7];
+    let result = largest(&number_list);
+    println!("{result}");
+    let char_list = vec!['y', 'n', 'm'];
+    let result = largest(&char_list);
+    println!("{result}");
+
+    // 结构体定义中的泛型
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+
+    // 枚举定义中的泛型
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+    enum Result<T, E> {
+        Ok(T),
+        Err(E),
+    }
+
+    impl<T> Point<T> {
+        fn x(&self) -> &T {
+            &self.x
+        }
+    }
+
+    let p = Point { x: 5, y: 10 };
+    println!("p.x = {}", p.x());
+
+    impl Point<f32> {
+        fn distance_from_origin(&self) -> f32 {
+            (self.x.powi(2) + self.y.powi(2)).sqrt()
+        }
+    }
+
+    // 泛型代码的性能;Rust 通过在编译时进行泛型代码的 单态化（monomorphization）来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程。
+}
