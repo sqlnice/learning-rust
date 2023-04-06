@@ -4,7 +4,7 @@ use rand::Rng;
 use std::{
     cmp::Ordering,
     collections::HashMap,
-    fs::{File, self},
+    fs::{self, File},
     hash::Hash,
     io::{self, ErrorKind, Read},
 }; // use 用来将路径引入作用域
@@ -768,7 +768,13 @@ fn recoverable_errors_with_result() {
         fs::read_to_string("hello.txt")
     }
     // ? 适用于 Option
-    fn last_char_of_first_line(text:&str) -> Option<char> {
+    fn last_char_of_first_line(text: &str) -> Option<char> {
         text.lines().next()?.chars().last()
     }
+}
+// 9.3 要不要 panic !
+fn to_panic_or_not_to_panic() {
+    // 返回 Result 是定义可能会失败的函数的一个默认选择
+
+    // 实例/代码原型和测试适合 panic
 }
