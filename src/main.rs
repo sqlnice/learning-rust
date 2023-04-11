@@ -8,6 +8,7 @@ use std::{
     fs::{self, File},
     hash::Hash,
     io::{self, ErrorKind, Read},
+    thread,
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
 
@@ -34,7 +35,8 @@ fn main() {
     // unrecoverable_errors_with_panic()
     // recoverable_errors_with_result()
     // traits()
-    lifetime_syntax()
+    // lifetime_syntax()
+    closures()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1029,6 +1031,90 @@ fn wirting_tests() {
     // );
 }
 // 11.2 控制测试如何运行
-fn running_tests() {
-    
+fn running_tests() {}
+
+// 13.1 闭包; 可以保存在一个变量中或作为参数传递给其他函数的匿名函数
+fn closures() {
+    // 闭包会捕获其环境
+    #[derive(Debug, PartialEq, Clone, Copy)]
+    enum ShirtColor {
+        Red,
+        Blue,
+    }
+
+    struct Inventory {
+        shirts: Vec<ShirtColor>,
+    }
+
+    impl Inventory {
+        fn giveaway(&self, user_perference: Option<ShirtColor>) -> ShirtColor {
+            // 将被闭包表达式 || self.most_stocked() 用作 unwrap_or_else 的参数
+            // unwrap_or_else 的实现会在之后需要其结果的时候执行闭包
+            user_perference.unwrap_or_else(|| self.most_stocked())
+        }
+        fn most_stocked(&self) -> ShirtColor {
+            let mut num_red = 0;
+            let mut num_blue = 0;
+            for color in &self.shirts {
+                match color {
+                    ShirtColor::Red => num_red += 1,
+                    ShirtColor::Blue => num_blue += 1,
+                }
+            }
+            if num_red > num_blue {
+                ShirtColor::Red
+            } else {
+                ShirtColor::Blue
+            }
+        }
+    }
+
+    let store = Inventory {
+        shirts: vec![ShirtColor::Blue, ShirtColor::Blue, ShirtColor::Red],
+    };
+    let user_pref1 = Some(ShirtColor::Red);
+    let giveaway1 = store.giveaway(user_pref1);
+    println!(
+        "The user with perference {:?} gets {:?}",
+        user_pref1, giveaway1
+    );
+    let user_pref2 = None;
+    let giveaway2 = store.giveaway(user_pref2);
+    println!(
+        "The user with preference {:?} gets {:?}",
+        user_pref2, giveaway2
+    );
+
+    // 闭包类型推断和注解
+    let example_closure = |x| x; // 默认推断
+    let s = example_closure("Hello".to_string());
+    // let n = example_closure(5); // 第一次使用 String 值调用 example_closure 时，编译器推断这个闭包中 x 的类型以及返回值的类型是 String。接着这些类型被锁定进闭包 example_closure 中，如果尝试对同一闭包使用不同类型则就会得到类型错误。
+
+    // 捕获引用或者移动所有权;闭包可以通过三种方式捕获其环境
+    // 1. 不可变借用
+    let list = vec![1, 2, 3];
+    println!("Before defining closure: {:?}", list);
+    let only_borrows = || println!("From closure: {:?}", list);
+    println!("Before calling closure: {:?}", list);
+    only_borrows();
+    println!("After calling closure: {:?}", list);
+    // 2. 可变借用
+    let mut list = vec![1, 2, 3];
+    println!("Before defining closure: {:?}", list);
+    let mut borrows_mutably = || list.push(7);
+    // 在闭包使用之前 不可调用 list,因为所有权在 borrows_mutably 里
+    borrows_mutably();
+    println!("After calling closure: {:?}", list);
+    // 3. 获取所有权
+    let list = vec![1, 2, 3];
+    println!("Before defining closure: {:?}", list);
+    thread::spawn(move || println!("From thread: {:?}", list))
+        .join()
+        .unwrap();
+
+    // 将被捕获的值移出闭包和 Fn trait
+    // 闭包捕获和处理环境中的值的方式影响闭包实现的 trait。Trait 是函数和结构体指定它们能用的闭包的类型的方式。取决于闭包体如何处理值，闭包自动、渐进地实现一个、两个或三个 Fn trait。
+    // FnOnce 适用于能被调用一次的闭包，所有闭包都至少实现了这个 trait，因为所有闭包都能被调用。一个会将捕获的值移出闭包体的闭包只实现 FnOnce trait，这是因为它只能被调用一次。
+    // FnMut 适用于不会将捕获的值移出闭包体的闭包，但它可能会修改被捕获的值。这类闭包可以被调用多次。
+    // Fn 适用于既不将被捕获的值移出闭包体也不修改被捕获的值的闭包，当然也包括不从环境中捕获值的闭包。这类闭包可以被调用多次而不改变它们的环境，这在会多次并发调用闭包的场景中十分重要。
 }
