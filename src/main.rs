@@ -1013,3 +1013,22 @@ fn lifetime_syntax() {
         }
     }
 }
+// 11 测试
+fn wirting_tests() {
+    // 测试函数执行三种操作
+    // 1.设置任何所需的数据或状态
+    // 2.运行需要测试的代码
+    // 3.断言其结果是所期望的
+    // 提供的宏 assert! assert_eq! assert_ne!
+
+    // 自定义失败信息
+    // assert!(
+    //     result.contains("Carol"),
+    //     "Greeting did not contain name, value was `{}`",
+    //     result
+    // );
+}
+// 11.2 控制测试如何运行
+fn running_tests() {
+    
+}
