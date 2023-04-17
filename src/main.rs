@@ -36,7 +36,8 @@ fn main() {
     // recoverable_errors_with_result()
     // traits()
     // lifetime_syntax()
-    closures()
+    // closures()
+    iterators()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1117,4 +1118,90 @@ fn closures() {
     // FnOnce 适用于能被调用一次的闭包，所有闭包都至少实现了这个 trait，因为所有闭包都能被调用。一个会将捕获的值移出闭包体的闭包只实现 FnOnce trait，这是因为它只能被调用一次。
     // FnMut 适用于不会将捕获的值移出闭包体的闭包，但它可能会修改被捕获的值。这类闭包可以被调用多次。
     // Fn 适用于既不将被捕获的值移出闭包体也不修改被捕获的值的闭包，当然也包括不从环境中捕获值的闭包。这类闭包可以被调用多次而不改变它们的环境，这在会多次并发调用闭包的场景中十分重要。
+}
+
+// 13.2 使用迭代器处理元素序列
+fn iterators() {
+    // 迭代器是 惰性的
+    let v1 = vec![1, 2, 3];
+    let v1_iter = v1.iter(); // 在使用之前没啥用
+    for val in v1_iter {
+        println!("Got: {}", val);
+    }
+
+    // Iterator trait 和 next 方法; 迭代器都实现了一个叫做 Iterator 的定义于标准库的 trait
+    pub trait Iterator {
+        type Item; // Item 类型将是迭代器返回元素的类型
+        fn next(&mut self) -> Option<Self::Item>;
+        // 此处省略了方法的默认实现
+    }
+    #[test]
+    fn iterator_demonstration() {
+        let v1 = vec![1, 2, 3];
+        let mut v1_iter = v1.iter();
+        assert_eq!(v1_iter.next(), Some(&1));
+        assert_eq!(v1_iter.next(), Some(&2));
+        assert_eq!(v1_iter.next(), Some(&3));
+        assert_eq!(v1_iter.next(), None);
+    }
+
+    // 消费迭代器的方法
+    #[test]
+    fn iterator_sum() {
+        let v1 = vec![1, 2, 3];
+        let v1_iter = v1.iter();
+        let total: i32 = v1_iter.sum();
+        // 调用 sum 之后不再允许使用 v1_iter 因为调用 sum 时它会获取迭代器的所有权。
+        assert_eq!(total, 6);
+    }
+
+    // 产生其他迭代器的方法
+    let v1 = vec![1, 2, 3];
+    let v2: Vec<_> = v1.iter().map(|x| x + 1).collect();
+    assert_eq!(v2, vec![2, 3, 4]);
+
+    // 使用捕获其环境的闭包
+    #[derive(PartialEq, Debug)]
+    struct Shoe {
+        size: u32,
+        style: String,
+    }
+    fn shoes_in_size(shoes: Vec<Shoe>, shoe_size: u32) -> Vec<Shoe> {
+        return shoes.into_iter().filter(|s| s.size == shoe_size).collect();
+    }
+    // #[cfg(test)]
+    // mod tests {
+    //     use super::*;
+    //     #[test]
+    //     fn filters_by_size() {
+    //         let shoes = vec![
+    //             Shoe {
+    //                 size: 10,
+    //                 style: String::from("sneaker"),
+    //             },
+    //             Shoe {
+    //                 size: 13,
+    //                 style: String::from("sandal"),
+    //             },
+    //             Shoe {
+    //                 size: 10,
+    //                 style: String::from("boot"),
+    //             },
+    //         ];
+    //         let in_my_size = shoes_in_size(shoes, 10);
+    //         assert_eq!(
+    //             in_my_size,
+    //             vec![
+    //                 Shoe {
+    //                     size: 10,
+    //                     style: String::from("sneaker")
+    //                 },
+    //                 Shoe {
+    //                     size: 10,
+    //                     style: String::from("boot")
+    //                 },
+    //             ]
+    //         );
+    //     }
+    // }
 }
