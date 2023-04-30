@@ -6,13 +6,19 @@ pub struct Config {
     pub ignore_case: bool,
 }
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
-        let query = args[1].clone();
-        let file_path = args[2].clone(); // 使用 clone 方法不会使用 args 的所有权;但有内存消耗
-        let ignore_case = env::var("IGNORE_CASE").is_ok(); // 不关心具体值,只关心是否存在 IGNORE_CASE
+    // env::args 返回迭代器的类型为 std::env::Args, 同时这个类型实现了 Iterator trait 并返回 String 值
+    // 在这里我们就拥有了 args 的所有权
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+        };
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
         Ok(Config {
             query,
             file_path,
@@ -65,22 +71,18 @@ Trust me.";
 
 // 返回值的生命周期与 contents 参数有关联
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut result = Vec::new();
-    for line in contents.lines() {
-        if line.contains(query) {
-            result.push(line);
-        }
-    }
-    result
+    // 使用迭代器编写更简明的代码.
+    // 函数式编程风格倾向于最小化可变状态的数量来使代码更简洁
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut result = Vec::new();
     let query = query.to_lowercase();
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            result.push(line);
-        }
-    }
-    result
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(&query))
+        .collect()
 }
