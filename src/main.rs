@@ -1622,3 +1622,17 @@ fn shared_state() {
     }
     println!("Result: {}", *counter.lock().unwrap());
 }
+
+// 16.4 使用 Sync 和 Send trait 的可扩展并发
+fn extensible_concurrency_sync_and_send() {
+    // Rust 并不提供并发, 都是由标准库提供的, 所以我们可以编写自己/使用别人的并发功能
+    // 然后有两个概念是内嵌在语言中的: std::marker 中的 Sync 和 Send trait
+
+    // 通过 Send 允许在线程间转移所有权
+    // Send 标记 trait 表明实现了 Send 的类型值的所有权可以在线程间传送。几乎所有的 Rust 类型都是Send 的; 但是不包括 Rc<T>
+
+    // Sync 允许多线程访问
+    // Sync 标记 trait 表明一个实现了 Sync 的类型可以安全的在多个线程中拥有其值的引用。
+
+    // 手动实现 Sync 和 Send 是不安全的
+}
