@@ -1683,3 +1683,60 @@ fn what_is_oo() {
     // 另外某些语言还只允许单继承（意味着子类只能继承一个父类），进一步限制了程序设计的灵活性。
     // 因为这些原因，Rust 选择了一个不同的途径，使用 trait 对象而不是继承。让我们看一下 Rust 中的 trait 对象是如何实现多态的。
 }
+
+// 17.2 顾及不同类型值的 trait 对象 (多态)
+fn trait_objects() {
+    // 定义通用行为的 trait
+    pub trait Draw {
+        fn draw(&self) {}
+    }
+    pub struct Screen {
+        // 这个 vector 的类型是 Box<dyn Draw>，此为一个 trait 对象：它是 Box 中任何实现了 Draw trait 的类型的替身。
+        pub components: Vec<Box<dyn Draw>>,
+    }
+    impl Screen {
+        pub fn run(&self) {
+            for component in self.components.iter() {
+                component.draw()
+            }
+        }
+    }
+
+    pub struct Button {
+        pub width: u32,
+        pub height: u32,
+        pub label: String,
+    }
+    impl Draw for Button {
+        fn draw(&self) {
+            // ...
+        }
+    }
+    pub struct SelectBox {
+        width: u32,
+        height: u32,
+        options: Vec<String>,
+    }
+    impl Draw for SelectBox {
+        fn draw(&self) {
+            // ...
+        }
+    }
+
+    let screen = Screen {
+        components: vec![
+            Box::new(SelectBox {
+                width: 75,
+                height: 10,
+                options: vec!["Yes".to_string(), "Maybe".to_string(), "No".to_string()],
+            }),
+            Box::new(Button {
+                width: 50,
+                height: 10,
+                label: "Ok".to_string(),
+            }),
+        ],
+    };
+    screen.run();
+    // 使用 trait 对象和 Rust 类型系统来进行类似鸭子类型操作的优势是无需在运行时检查一个值是否实现了特定方法或者担心在调用时因为值没有实现方法而产生错误。如果值没有实现 trait 对象所需的 trait 则 Rust 不会编译这些代码。
+}
