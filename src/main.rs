@@ -2,6 +2,8 @@ use crate::garden::vegetables::Asparagus;
 use core::num;
 use rand::Rng;
 use std::{
+    borrow::Borrow,
+    cell::RefCell,
     cmp::Ordering,
     collections::HashMap,
     fmt::{Debug, Display},
@@ -10,7 +12,7 @@ use std::{
     io::{self, ErrorKind, Read},
     mem::drop,
     ops::Deref,
-    rc::Rc,
+    rc::{Rc, Weak},
     thread,
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
@@ -43,7 +45,9 @@ fn main() {
     // iterators()
     // re_box()
     // re_drop()
-    rc()
+    // rc()
+    // reference_cycles()
+    reference_cycles()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1352,3 +1356,112 @@ fn interior_mutability() {
     // 参考视频 https://www.bilibili.com/video/BV1hp4y1k7SV?p=91&vd_source=1549b8cabb3562014626abcb022d5a29
     // 通过 RefCell 在创建一个不可变引用的前提下对数据进行修改, 使用 unsafe 绕过 Rust 正常的可变性和借用规则检查, 就可以在内部操作时改变值, 但是在外面不可直接操作改变值
 }
+
+// 15.6 引用循环导致内存泄露
+fn reference_cycles() {
+    // 内存泄漏在 Rust 被认为是内存安全的。这一点可以通过 Rc<T> 和 RefCell<T> 看出：创建引用循环的可能性是存在的。这会造成内存泄漏，因为每一项的引用计数永远也到不了 0，其值也永远不会被丢弃。
+
+    // 制造引用循环
+    #[derive(Debug)]
+    enum List {
+        Cons(i32, RefCell<Rc<List>>),
+        Nil,
+    }
+    use List::{Cons, Nil};
+    impl List {
+        fn tail(&self) -> Option<&RefCell<Rc<List>>> {
+            match self {
+                Cons(_, item) => Some(item),
+                Nil => None,
+            }
+        }
+    }
+
+    let a = Rc::new(Cons(5, RefCell::new(Rc::new(Nil))));
+    println!("a initial rc count = {}", Rc::strong_count(&a));
+    println!("a next item = {:?}", a.tail());
+
+    let b = Rc::new(Cons(10, RefCell::new(Rc::clone(&a))));
+    println!("a rc count after b creation = {}", Rc::strong_count(&a));
+    println!("b initial rc count = {}", Rc::strong_count(&b));
+    println!("b next item = {:?}", b.tail());
+
+    if let Some(link) = a.tail() {
+        *link.borrow_mut() = Rc::clone(&b);
+    }
+
+    println!("b rc count after changing a = {}", Rc::strong_count(&b));
+    println!("a rc count after changing a = {}", Rc::strong_count(&a));
+    // 取消下一行的注释，看到我们有一个循环;
+    // 它将溢出堆栈
+    // println!("a next item = {:?}", a.tail());
+
+    // 避免引用循环: 将 Rc<T> 变为 Weak<T>
+    // 弱引用不属于所有权关系, 不会造成引用循环, 因为任何弱引用的循环在其相关的强引用计数为 0 时被打断
+    // 1. 创建树形数据结构: 带有子节点的 Node
+    #[derive(Debug)]
+    struct Node {
+        value: i32,
+        parent: RefCell<Weak<Node>>,
+        children: RefCell<Vec<Rc<Node>>>,
+    }
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    let branch = Rc::new(Node {
+        value: 5,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![Rc::clone(&leaf)]),
+    });
+    // 2.增加从子到父的引用
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+
+    // 可视化 strong_count 和 weak_count 的改变
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+
+    {
+        let branch = Rc::new(Node {
+            value: 5,
+            parent: RefCell::new(Weak::new()),
+            children: RefCell::new(vec![Rc::clone(&leaf)]),
+        });
+
+        *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+        println!(
+            "branch strong = {}, weak = {}",
+            Rc::strong_count(&branch),
+            Rc::weak_count(&branch),
+        );
+
+        println!(
+            "leaf strong = {}, weak = {}",
+            Rc::strong_count(&leaf),
+            Rc::weak_count(&leaf),
+        );
+    }
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+}
+// Box<T> 有一个已知的大小并指向分配在堆上的数据。
+// Rc<T> 记录了堆上数据的引用数量以便可以拥有多个所有者。
+// RefCell<T> 和其内部可变性提供了一个可以用于当需要不可变类型但是需要改变其内部值能力的类型，并在运行时而不是编译时检查借用规则。
