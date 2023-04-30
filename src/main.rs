@@ -1210,3 +1210,8 @@ fn iterators() {
 fn performance() {
     // 迭代器，作为一个高级的抽象，被编译成了与手写的底层代码大体一致性能代码。迭代器是 Rust 的 零成本抽象（zero-cost abstractions）之一，它意味着抽象并不会引入运行时开销
 }
+
+// 14.1 采用发布配置自定义构建
+fn release_profiles() {
+    // Cargo 有两个主要的配置：运行 cargo build 时采用的 dev 配置和运行 cargo build --release 的 release 配置。dev 配置被定义为开发时的好的默认配置，release 配置则有着良好的发布构建的默认配置。
+}
