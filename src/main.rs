@@ -8,6 +8,7 @@ use std::{
     fs::{self, File},
     hash::Hash,
     io::{self, ErrorKind, Read},
+    ops::Deref,
     thread,
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
@@ -1248,4 +1249,42 @@ fn re_box() {
     let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
     // 通过 Box 可解决位置空间问题, 因为 Box 可以提供引用地址的大小
     // Box<T> 类型是一个智能指针，因为它实现了 Deref trait，它允许 Box<T> 值被当作引用对待。当 Box<T> 值离开作用域时，由于 Box<T> 类型 Drop trait 的实现，box 所指向的堆数据也会被清除。这两个 trait 对于在本章余下讨论的其他智能指针所提供的功能中，将会更为重要。让我们更详细的探索一下这两个 trait。
+}
+// 15.2 通过 Deref trait 将智能指针当做常规引用处理
+fn deref() {
+    // 实现 Deref trait 允许我们重载 解引用运算符（dereference operator）*。通过这种方式实现 Deref trait 的智能指针可以被当作常规引用来对待，可以编写操作引用的代码并用于智能指针。
+
+    // 常规引用
+    let x = 5;
+    let y = &x;
+    assert_eq!(5, x);
+    // assert_eq!(5, y); // 会报错 不允许比较数字的引用与数字，因为它们是不同的类型。
+    assert_eq!(5, *y); // 通过 * 来追踪引用者所指向的值, 也就是解引用
+
+    // Box
+    let x = 5;
+    let y = Box::new(x);
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+    // 上面两种, 有何不同?
+
+    // 自定义智能指针
+    struct MyBox<T>(T);
+    impl<T> MyBox<T> {
+        fn new(x: T) -> MyBox<T> {
+            MyBox(x)
+        }
+    }
+    impl<T> Deref for MyBox<T> {
+        type Target = T; // type Target = T; 语法定义了用于此 trait 的关联类型
+        fn deref(&self) -> &Self::Target {
+            &self.0 // deref 方法体中写入了 &self.0，这样 deref 返回了我希望通过 * 运算符访问的值的引用。回忆一下第五章 “使用没有命名字段的元组结构体来创建不同的类型” 部分 .0 用来访问元组结构体的第一个元素
+        }
+    }
+    let x = 5;
+    let y = MyBox::new(x);
+    assert_eq!(5, x);
+    assert_eq!(5, *y); // 编译器在底层运行 *(y.deref())
+
+    // 函数和方法的隐式 Deref 强制转换, 可以理解为 JS 中的 Boolean('1')
 }
