@@ -1215,3 +1215,8 @@ fn performance() {
 fn release_profiles() {
     // Cargo 有两个主要的配置：运行 cargo build 时采用的 dev 配置和运行 cargo build --release 的 release 配置。dev 配置被定义为开发时的好的默认配置，release 配置则有着良好的发布构建的默认配置。
 }
+
+// 14.3 Cargo 工作空间
+fn cargo_workspace() {
+    // 工作空间是一系列共享同样的 Cargo.lock 和输出目录的包
+}
