@@ -13,6 +13,7 @@ use std::{
     mem::drop,
     ops::Deref,
     rc::{Rc, Weak},
+    sync::mpsc,
     thread,
     time::Duration,
 }; // use 用来将路径引入作用域
@@ -49,7 +50,8 @@ fn main() {
     // rc()
     // reference_cycles()
     // reference_cycles()
-    threads()
+    // threads()
+    message_passing()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1508,4 +1510,81 @@ fn threads() {
         println!("Here's a vector: {:?}", v);
     });
     handle.join().unwrap();
+}
+
+// 16.2 使用消息传递在线程间传送数据
+fn message_passing() {
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        let val = "hi".to_string();
+        tx.send(val).unwrap();
+    });
+    let received = rx.recv().unwrap();
+    // recv 会阻塞主线程; try_recv 则不会
+    println!("Got: {}", received);
+
+    // 信道与所有权转移
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let val = String::from("hi");
+        tx.send(val).unwrap();
+        // println!("val is {}", val); // 有可能在发送数据之后此线程结束, 所以 val 不再有效
+    });
+    let received = rx.recv().unwrap();
+    println!("Got: {}", received);
+
+    // 发送多个值并观察接受者的等待
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("thread"),
+        ];
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+    for received in rx {
+        println!("Got: {}", received)
+    }
+    // 因为主线程中的 for 循环里并没有任何暂停或等待的代码，所以可以说主线程是在等待从新建线程中接收值。
+    // Got: hi
+    // Got: from
+    // Got: the
+    // Got: thread
+
+    // 通过克隆发送者来创建多个生产者
+    let (tx, rx) = mpsc::channel();
+    let tx1 = tx.clone();
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("thread"),
+        ];
+        for val in vals {
+            tx1.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("more"),
+            String::from("messages"),
+            String::from("for"),
+            String::from("you"),
+        ];
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+    for received in rx {
+        println!("Got: {}", received);
+    }
 }
