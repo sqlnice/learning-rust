@@ -13,7 +13,7 @@ use std::{
     mem::drop,
     ops::Deref,
     rc::{Rc, Weak},
-    sync::mpsc,
+    sync::{mpsc, Arc, Mutex},
     thread,
     time::Duration,
 }; // use 用来将路径引入作用域
@@ -51,7 +51,8 @@ fn main() {
     // reference_cycles()
     // reference_cycles()
     // threads()
-    message_passing()
+    // message_passing()
+    shared_state()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1587,4 +1588,37 @@ fn message_passing() {
     for received in rx {
         println!("Got: {}", received);
     }
+}
+
+// 16.3 共享状态并发
+fn shared_state() {
+    // 另一种处理并发的方式
+    // 互斥器; 在任意时刻,只允许一个线程访问某些数据
+
+    // Mutex<T>的 API
+    let m = Mutex::new(5);
+    {
+        // 将 lock 返回的值视为内部数据的可变引用
+        // Mutex 是智能指针, Deref 来指向内部数据; Drop 用于释放锁
+        let mut num = m.lock().unwrap();
+        *num = 6;
+    }
+    println!("m = {:?}", m);
+
+    // 线程直接共享 Mutex<T>
+    // 原子引用计数 Arc; 像基本类型一样可以安全的在线程间共享
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+    for handle in handles {
+        handle.join().unwrap()
+    }
+    println!("Result: {}", *counter.lock().unwrap());
 }
