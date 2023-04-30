@@ -10,6 +10,7 @@ use std::{
     io::{self, ErrorKind, Read},
     mem::drop,
     ops::Deref,
+    rc::Rc,
     thread,
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
@@ -41,7 +42,8 @@ fn main() {
     // closures()
     // iterators()
     // re_box()
-    re_drop()
+    // re_drop()
+    rc()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1316,4 +1318,24 @@ fn re_drop() {
     println!("CustomSmartPointer created.");
     drop(e);
     println!("CustomSmartPointer dropped befor the end of main.")
+}
+
+// 15.4 标准库中的其它智能指针
+// - Rc<T> 引用计数智能指针
+fn rc() {
+    // 单个值可能有多个所有者; Rc<T> 只能用于单线程场景
+    enum List {
+        Cons(i32, Rc<List>),
+        Nil,
+    }
+    use List::{Cons, Nil};
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));
+    println!("count after creating a = {}", Rc::strong_count(&a));
+    let b = Cons(3, Rc::clone(&a)); // 不会拷贝, 只会操作引用计数从 1 -> 2
+    println!("count after creating b = {}", Rc::strong_count(&a));
+    {
+        let c = Cons(4, Rc::clone(&a)); // 不会拷贝, 只会操作引用计数从 2 -> 3
+        println!("count after creating c = {}", Rc::strong_count(&a));
+    }
+    println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
