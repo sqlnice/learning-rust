@@ -8,6 +8,7 @@ use std::{
     fs::{self, File},
     hash::Hash,
     io::{self, ErrorKind, Read},
+    mem::drop,
     ops::Deref,
     thread,
 }; // use 用来将路径引入作用域
@@ -39,7 +40,8 @@ fn main() {
     // lifetime_syntax()
     // closures()
     // iterators()
-    re_box()
+    // re_box()
+    re_drop()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1287,4 +1289,31 @@ fn deref() {
     assert_eq!(5, *y); // 编译器在底层运行 *(y.deref())
 
     // 函数和方法的隐式 Deref 强制转换, 可以理解为 JS 中的 Boolean('1')
+}
+
+// 15.3 使用 Drop Trait 运行清理代码
+fn re_drop() {
+    struct CustomSmartPointer {
+        data: String,
+    }
+    impl Drop for CustomSmartPointer {
+        fn drop(&mut self) {
+            println!("Dropping CustomSmartPointer with data: `{}`!", &self.data)
+        }
+    }
+    let c = CustomSmartPointer {
+        data: "my stuff".to_string(),
+    };
+    let d = CustomSmartPointer {
+        data: "other stuff".to_string(),
+    };
+    println!("CustomSmartPointer creted.");
+
+    // 通过 std::mem::drop 提早丢弃值
+    let e = CustomSmartPointer {
+        data: "some data".to_string(),
+    };
+    println!("CustomSmartPointer created.");
+    drop(e);
+    println!("CustomSmartPointer dropped befor the end of main.")
 }
