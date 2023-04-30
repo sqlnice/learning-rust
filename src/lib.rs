@@ -1,3 +1,5 @@
+//! # My Crate
+//! 用来测试 Crate 文档注释
 // 模块名称为 front_of_house
 mod front_of_house;
 // 模块树的结构
@@ -86,4 +88,21 @@ mod tests {
         };
         assert!(larger.can_hold(&smaller));
     }
+}
+
+/// Adds one to the number given.
+///
+/// # Examples
+///
+/// ```
+/// let arg = 5;
+/// let answer = my_crate::add_one(arg);
+///
+/// assert_eq!(6, answer);
+/// ```
+///
+/// # Panics
+/// test
+pub fn add_one(x: i32) -> i32 {
+    x + 1
 }
