@@ -14,6 +14,7 @@ use std::{
     ops::Deref,
     rc::{Rc, Weak},
     thread,
+    time::Duration,
 }; // use 用来将路径引入作用域
 pub mod garden; // 告诉编译器应该包含在src/garden.rs文件中发现的代码
 
@@ -47,7 +48,8 @@ fn main() {
     // re_drop()
     // rc()
     // reference_cycles()
-    reference_cycles()
+    // reference_cycles()
+    threads()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1465,3 +1467,45 @@ fn reference_cycles() {
 // Box<T> 有一个已知的大小并指向分配在堆上的数据。
 // Rc<T> 记录了堆上数据的引用数量以便可以拥有多个所有者。
 // RefCell<T> 和其内部可变性提供了一个可以用于当需要不可变类型但是需要改变其内部值能力的类型，并在运行时而不是编译时检查借用规则。
+
+// 16.1 使用线程同时运行代码
+fn threads() {
+    // 多线程导致的问题
+    // 1. 竞态条件
+    // 2. 死锁
+    // 3. 只会发生在特定情况下且难以稳定重现和修复的 bug
+
+    // 使用 spawn 创建新线程
+    thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawn thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+    // 主线程结束后 子线程也会结束!!
+
+    // 使用 join 等待所有线程结束
+    let handle = thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+    handle.join().unwrap();
+    // 调用 handle 的 join 会阻塞当前线程直到 handle 所代表的线程结束。阻塞（Blocking）线程意味着阻止该线程执行工作或退出
+
+    // 线程与 move 闭包
+    let v = vec![1, 2, 3];
+    let handle = thread::spawn(move || {
+        println!("Here's a vector: {:?}", v);
+    });
+    handle.join().unwrap();
+}
