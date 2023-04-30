@@ -37,7 +37,8 @@ fn main() {
     // traits()
     // lifetime_syntax()
     // closures()
-    iterators()
+    // iterators()
+    re_box()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1219,4 +1220,32 @@ fn release_profiles() {
 // 14.3 Cargo 工作空间
 fn cargo_workspace() {
     // 工作空间是一系列共享同样的 Cargo.lock 和输出目录的包
+}
+
+// 15 智能指针
+// 指针是一个包含内存地址的变量的通用概念.Rust 中最常见的指针是 引用, 以 & 符号为标志并借用所指向的值.
+// 另一方面, 智能指针是一类数据结构, 表现类似指针. 但是拥有额外的元数据和功能.
+// 智能指针通常使用结构体实现. 不同于结构体的地方在于其实现了 Deref 和 Drop trait. Deref trait 允许智能智能结构体实例表现得像引用一样, 既可以引用又用于智能指针. Drop trait 允许我们自定义当智能指针离开作用域时运行的代码.
+// 15.1 使用 Box<T> 指向堆上数据
+fn re_box() {
+    // Box 允许将一个值放在堆上, 留在栈上的则是指针.
+    // 应用场景:
+    // 当有一个在编译时未知大小的类型，而又想要在需要确切大小的上下文中使用这个类型值的时候
+    // 当有大量数据并希望在确保数据不被拷贝的情况下转移所有权的时候
+    // 当希望拥有一个值并只关心它的类型是否实现了特定 trait 而不是其具体类型的时候
+
+    // 使用
+    let b = Box::new(5);
+    println!("b = {}", b);
+
+    // Box 允许创建递归类型
+    // Rust 需要在编译时知道类型占用多少空间. 递归理论上可以无限进行下去.
+    enum List {
+        Cons(i32, Box<List>),
+        Nil,
+    }
+    use List::{Cons, Nil};
+    let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+    // 通过 Box 可解决位置空间问题, 因为 Box 可以提供引用地址的大小
+    // Box<T> 类型是一个智能指针，因为它实现了 Deref trait，它允许 Box<T> 值被当作引用对待。当 Box<T> 值离开作用域时，由于 Box<T> 类型 Drop trait 的实现，box 所指向的堆数据也会被清除。这两个 trait 对于在本章余下讨论的其他智能指针所提供的功能中，将会更为重要。让我们更详细的探索一下这两个 trait。
 }
