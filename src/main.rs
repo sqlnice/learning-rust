@@ -1636,3 +1636,50 @@ fn extensible_concurrency_sync_and_send() {
 
     // 手动实现 Sync 和 Send 是不安全的
 }
+
+// 17.1 面向对象语言的特征
+fn what_is_oo() {
+    // 对象包含数据和行为
+    // 面向对象的程序是由对象组成的。一个 对象 包含数据和操作这些数据的过程。这些过程通常被称为 方法 或 操作。
+    // 在这个定义下，Rust 是面向对象的.
+
+    // 封装隐藏了实现细节
+    // 对象的实现细节不能被使用对象的代码获取到
+    pub struct AverageCollection {
+        list: Vec<i32>,
+        average: f64,
+    }
+    impl AverageCollection {
+        pub fn add(&mut self, value: i32) {
+            self.list.push(value);
+            self.update_average();
+        }
+        pub fn remove(&mut self) -> Option<i32> {
+            let result = self.list.pop();
+            match result {
+                Some(value) => {
+                    self.update_average();
+                    Some(value)
+                }
+                None => None,
+            }
+        }
+        pub fn average(&self) -> f64 {
+            self.average
+        }
+        fn update_average(&mut self) {
+            let total: i32 = self.list.iter().sum();
+            self.average = total as f64 / self.list.len() as f64;
+        }
+    }
+    // 公有方法 add、remove 和 average 是修改 AveragedCollection 实例的唯一方式
+    // 如果封装是一个语言被认为是面向对象语言所必要的方面的话，那么 Rust 满足这个要求。在代码中不同的部分使用 pub 与否可以封装其实现细节。
+
+    // 继承, 作为类型系统与代码共享
+    // 继承（Inheritance）是一个很多编程语言都提供的机制，一个对象可以定义为继承另一个对象定义中的元素，这使其可以获得父对象的数据和行为，而无需重新定义。
+    // 如果一个语言必须有继承才能被称为面向对象语言的话，那么 Rust 就不是面向对象的。因为没有宏则无法定义一个结构体继承父结构体的成员和方法。
+
+    // 近来继承作为一种语言设计的解决方案在很多语言中失宠了，因为其时常带有共享多于所需的代码的风险。子类不应总是共享其父类的所有特征，但是继承却始终如此。如此会使程序设计更为不灵活，并引入无意义的子类方法调用，或由于方法实际并不适用于子类而造成错误的可能性。
+    // 另外某些语言还只允许单继承（意味着子类只能继承一个父类），进一步限制了程序设计的灵活性。
+    // 因为这些原因，Rust 选择了一个不同的途径，使用 trait 对象而不是继承。让我们看一下 Rust 中的 trait 对象是如何实现多态的。
+}
