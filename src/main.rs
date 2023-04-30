@@ -1339,3 +1339,16 @@ fn rc() {
     }
     println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
+// 15.5 RefCell<T> 和内部可变性模式
+fn interior_mutability() {
+    // 内部可变性是 Rust 中的一个设计模式, 允许即使在有不可变引用时也能改变数据
+    // 只能用于单线程场景
+    // 如下为选择 Box<T>，Rc<T> 或 RefCell<T> 的理由：
+    // Rc<T> 允许相同数据有多个所有者；Box<T> 和 RefCell<T> 有单一所有者。
+    // Box<T> 允许在编译时执行不可变或可变借用检查；Rc<T>仅允许在编译时执行不可变借用检查；RefCell<T> 允许在运行时执行不可变或可变借用检查。
+    // 因为 RefCell<T> 允许在运行时执行可变借用检查，所以我们可以在即便 RefCell<T> 自身是不可变的情况下修改其内部的值。
+
+    // TODO 难理解
+    // 参考视频 https://www.bilibili.com/video/BV1hp4y1k7SV?p=91&vd_source=1549b8cabb3562014626abcb022d5a29
+    // 通过 RefCell 在创建一个不可变引用的前提下对数据进行修改, 使用 unsafe 绕过 Rust 正常的可变性和借用规则检查, 就可以在内部操作时改变值, 但是在外面不可直接操作改变值
+}
