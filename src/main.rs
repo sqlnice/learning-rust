@@ -53,7 +53,8 @@ fn main() {
     // threads()
     // message_passing()
     // shared_state()
-    oo_design_patterns()
+    // oo_design_patterns()
+    all_the_places_for_patterns()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -1818,4 +1819,60 @@ fn oo_design_patterns() {
     assert_eq!("", post.content());
     post.approve();
     assert_eq!("I ate a salad for lunch today", post.content());
+}
+
+// 模式与模式匹配
+// 18.1 所有可能会用到模式的位置
+fn all_the_places_for_patterns() {
+    // match
+    // match x {
+    //     None => None,
+    //     Some(i) => Some(i + 1),
+    // }
+
+    // if let
+    let favorite_color: Option<&str> = None;
+    let is_tuesday = false;
+    let age: Result<u8, _> = "28".parse();
+    if let Some(color) = favorite_color {
+        println!("Using you favorite color, {color}, as the backgroud");
+    } else if is_tuesday {
+        println!("Tuesday is green day!");
+    } else if let Ok(age) = age {
+        if age > 30 {
+            println!("Using purple as the background color");
+        } else {
+            println!("Using orangle as the background color");
+        }
+    } else {
+        println!("Using blue as the background color");
+    }
+
+    // while let
+    let mut stack = Vec::new();
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+    while let Some(top) = stack.pop() {
+        println!("{}", top)
+    }
+
+    // for
+    let x = vec!['a', 'b', 'c'];
+    for (index, value) in x.iter().enumerate() {
+        println!("{} is as index {}", value, index)
+    }
+
+    // let
+    let x = 5;
+    // let PATTERN = EXPRESSION;
+    let (x, y, z) = (1, 2, 3);
+
+    // 函數參數
+    fn foo(x: i32) {}
+    fn print_coordinates(&(x, y): &(i32, i32)) {
+        println!("Current location: ({},{})", x, y)
+    }
+    let point = (3, 5);
+    print_coordinates(&point);
 }
