@@ -1876,3 +1876,12 @@ fn all_the_places_for_patterns() {
     let point = (3, 5);
     print_coordinates(&point);
 }
+
+// 18.2 Refutability (可反驳性): 模式是否会匹配失效
+fn refutability() {
+    // 模式有两种形式
+    // 1. refutable 可反驳
+    // 可能会失败 if let Some(x) = a_value
+    // 2. irrefutable 不可反驳
+    // 能匹配任何传递的可能值的模式 let x = 5
+}
