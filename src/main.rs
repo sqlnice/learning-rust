@@ -57,7 +57,8 @@ fn main() {
     // oo_design_patterns()
     // all_the_places_for_patterns()
     // pattern_syntax()
-    unsafe_rust()
+    // unsafe_rust()
+    advanced_functions_and_closures()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -2168,4 +2169,26 @@ fn advanced_types() {
 
     // 从不返回的 never type; 从不返回的函数被称为 发散函数
     // fn bar() -> ! {}
+}
+
+// 19.4 高级函数与闭包
+fn advanced_functions_and_closures() {
+    // 函数指针
+    fn add_one(x: i32) -> i32 {
+        x + 1
+    }
+    fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 {
+        f(arg) + f(arg)
+    }
+    let answer = do_twice(add_one, 5);
+    println!("The answer is :{}", answer);
+
+    // 返回闭包; 错误; Rust 并不知道需要多少空间来储存闭包
+    // fn returns_closure() -> dyn Fn(i32) -> i32 {
+    //     |x| x + 1
+    // }
+    // 解决方法: 使用 trait 对象
+    fn returns_closure() -> Box<dyn Fn(i32) -> i32> {
+        Box::new(|x| x + 1)
+    }
 }
