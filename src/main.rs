@@ -2150,3 +2150,22 @@ fn unsafe_rust() {
     unsafe trait Foo {}
     unsafe impl Foo for i32 {}
 }
+
+// 19.2 高级 trait
+fn advanced_traits() {}
+
+// 19.3 高级类型
+fn advanced_types() {
+    // 类型别名
+    type Kilometers = i32;
+    let x: i32 = 5;
+    let y: Kilometers = 5;
+    println!("x + y = {}", x + y);
+    // 类型别名的主要用途是减少重复
+    type Thunk = Box<dyn Fn() + Send + 'static>;
+    let f: Thunk = Box::new(|| println!("hi"));
+    fn takes_long_type(f: Thunk) {}
+
+    // 从不返回的 never type; 从不返回的函数被称为 发散函数
+    // fn bar() -> ! {}
+}
