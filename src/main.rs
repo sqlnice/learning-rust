@@ -2192,3 +2192,42 @@ fn advanced_functions_and_closures() {
         Box::new(|x| x + 1)
     }
 }
+
+// 19.5 宏
+fn macros() {
+    // 宏指的是 Rust 中一系列的功能:
+    // 使用 macro_rules! 的声明宏
+    // 自定义 #[derive] 宏在结构体和枚举上指定通过 derive 属性添加的代码
+    // 类属性宏定义可用于任意项的自定义属性
+    // 类函数宏看起来像函数不过作用于作为参数传递的 token
+
+    // 宏与函数的区别
+    // 1. 从根本上来说，宏是一种为写其他代码而写代码的方式，即所谓的 元编程（metaprogramming）。
+    // 2. 宏不必声明参数个数和类型
+    // 3. 定义宏比较复杂, 因为算是在编写生成 Rust 代码的 Rust 代码
+    // 4. 调用宏之前需要定义和引入作用域
+
+    // 使用 macro_rules 的声明宏用于通用元编程
+    let v: Vec<i32> = vec![1, 2, 3];
+    // #[macro_export]
+    // macro_rules! vec {
+    //     ($($x:expr), * ) => { // 分支模式
+    //         // $() 内则是 $x:expr ，其匹配 Rust 的任意表达式，并将该表达式命名为 $x
+    //         // 逗号之后的 * 说明该模式匹配零个或更多个 * 之前的任何模式。
+    //         {
+    //             let mut temp_vec = Vec::new();
+    //             $(
+    //                 temp_vec.push($x);
+    //             )*
+    //             temp_vec
+    //         }
+    //     };
+    // }
+
+    // 用于从属性生成代码的过程宏
+    // use proc_macro;
+    // #[some_attribute]
+    // pub fn some_name(input: TokenStream) -> TokenStream {}
+
+    // 略过
+}
