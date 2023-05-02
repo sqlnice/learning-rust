@@ -13,6 +13,7 @@ use std::{
     mem::drop,
     ops::Deref,
     rc::{Rc, Weak},
+    slice,
     sync::{mpsc, Arc, Mutex},
     thread,
     time::Duration,
@@ -55,7 +56,8 @@ fn main() {
     // shared_state()
     // oo_design_patterns()
     // all_the_places_for_patterns()
-    pattern_syntax()
+    // pattern_syntax()
+    unsafe_rust()
 }
 // 2 猜数字游戏
 fn guess_number() {
@@ -2055,4 +2057,96 @@ fn pattern_syntax() {
         }
         Message2::Hello { id } => println!("Found some other id: {}", id),
     }
+}
+
+// 高级特性
+// 19.1 不安全 Rust
+fn unsafe_rust() {
+    // 静态分析本质上是保守的. 为什么需要不安全 Rust
+    // 1. 在没有提供足够的信息给编译器时, 但是代码 "可能" 合法, 编译器将拒绝.
+    // 2. 底层计算机硬件固有的不安全性, 如果依照编译器, 则导致有些任务根本完成不了.
+
+    // 不安全的超能力
+    // 1. 解引用裸指针
+    // 2. 调用不安全的函数或方法
+    // 3. 访问或修改可变静态变量
+    // 4. 实现不安全 trait
+    // 5. 访问 union 的字段
+
+    // unsafe 关键字只是提供上面五种不会被编译器检查内存安全的功能. 编译器的其他规则仍然启用.
+
+    // 解引用裸指针
+    // *const T
+    // *mut T
+    // 裸指针与引用、智能指针的区别
+    // 1. 允许忽略借用规格, 可以同时拥有不可变和可变的指针, 或多个指向相同位置的可变指针
+    // 2. 不保证指向有效内存
+    // 3. 允许为空
+    // 4. 不能实现任何自动清理功能
+    // 从引用同事创建不可变和可变裸指针
+    let mut num = 5;
+    let r1 = &num as *const i32;
+    let r2 = &mut num as *mut i32;
+    // 可以随时创建裸指针, 但解引用裸指针只能在 unsafe 块内
+    unsafe {
+        println!("r1 is :{}", *r1);
+        println!("r2 is :{}", *r2);
+    }
+
+    // 调用不安全的函数或方法
+    unsafe fn dangerous() {}
+    unsafe { dangerous() }
+
+    // 创建不安全代码的安全抽象
+    // split_at_mut 使用示例
+    let mut v = vec![1, 2, 3, 4, 5, 6];
+    let r = &mut v[..];
+    let (a, b) = r.split_at_mut(3);
+    assert_eq!(a, &mut [1, 2, 3]);
+    assert_eq!(b, &mut [4, 5, 6]);
+    // 如何实现 split_at_mut
+    // fn split_at_mut(values: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
+    //     let len = values.len();
+    //     assert!(mid <= len);
+    //     (&mut values[..mid], &mut values[mid..]) // 报错, 不能同时借用多次
+    // }
+
+    fn split_at_mut(values: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
+        let len = values.len();
+        // 访问 values 的裸指针
+        let ptr = values.as_mut_ptr();
+        assert!(mid <= len);
+        unsafe {
+            (
+                // 获取一个裸指针和长度来创建一个 slice
+                slice::from_raw_parts_mut(ptr, mid),
+                // 获取一个从 mid 开始的裸指针
+                slice::from_raw_parts_mut(ptr.add(mid), len - mid),
+            )
+        }
+    }
+
+    // 使用 extern 函数调用外部代码
+    extern "C" {
+        fn abs(input: i32) -> i32;
+    }
+    unsafe {
+        println!("Absolute value of -3 according to C: {}", abs(-3));
+    }
+
+    // 访问或修改可变静态变量
+    static HELLO_WORLD: &str = "Hello World";
+    println!("name is: {}", HELLO_WORLD);
+    static mut COUNTER: u32 = 0;
+    fn add_to_count(inc: u32) {
+        unsafe {
+            COUNTER += inc;
+        }
+    }
+    add_to_count(3);
+    unsafe { println!("COUNTER: {}", COUNTER) }
+
+    // 实现不安全 trait
+    unsafe trait Foo {}
+    unsafe impl Foo for i32 {}
 }
